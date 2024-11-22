@@ -77,3 +77,20 @@ To learn more about React Native, take a look at the following resources:
 - [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
 - [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
 - [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+
+
+# My TicTacToe App
+
+This is a simple TicTacToe app built with React Native. Below are some screenshots of the app:
+
+## Screenshot 1:
+![gameplay](./src/assets/WhatsApp%20Image%202024-11-22%20at%2021.45.42.jpeg)
+
+## Screenshot 2:
+![gameplay](./src/assets/WhatsApp%20Image%202024-11-22%20at%2021.45.53.jpeg)
+
+## Screenshot 3 :
+![gameplay](./src/assets/WhatsApp%20Image%202024-11-22%20at%2021.49.49.jpeg)
+
+## Screenshot 4 :
+![gameplay](./src//assets/WhatsApp%20Image%202024-11-22%20at%2021.45.30.jpeg)
