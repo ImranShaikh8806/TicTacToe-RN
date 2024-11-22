@@ -1,147 +1,193 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Image, Pressable, Animated, ImageSourcePropType } from 'react-native';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { Pressable, StyleSheet, Text, View, Animated } from 'react-native';
+import React, { useState } from 'react';
 
-import diceone from './assets/dice1.png';
-import dicetwo from './assets/dice2.png';
-import dicethree from './assets/dice3.png';
-import dicefour from './assets/dice4.png';
-import dicefive from './assets/dice5.png';
-import dicesix from './assets/dice6.png';
+const App = () => {
+  const [board, setBoard] = useState(Array(9).fill(null));
+  const [winner, setWinner] = useState('');
+  const [heading, setHeading] = useState('O Turn'); 
+  const [resetTurn, setResetTurn] = useState(true); // true = "O Turn", false = "X Turn"
+  
+//animation
+  const [scales, setScales] = useState(() => Array(9).fill(null).map(() => new Animated.Value(1)));
 
-type DiceProps = {
-  imageurl: ImageSourcePropType;
-};
 
-const Dice = ({ imageurl }: DiceProps): JSX.Element => {
-  return <Image style={styles.diceImage} source={imageurl} />;
-};
-
-const options = {
-  enableVibrateFallback: true,
-  ignoreAndroidSystemSettings: false,
-};
-
-export default function App(): JSX.Element {
-  const [diceImg, setDiceImg] = useState<ImageSourcePropType>(diceone);
-  const [isCooldown, setIsCooldown] = useState(false); 
-  const rotation = useRef(new Animated.Value(0)).current; 
-  const scale = useRef(new Animated.Value(1)).current; 
-
-  const rollDiceOnTap = () => {
-    if (isCooldown) return; 
-
-    
-    rotation.setValue(0);
-
-    
-    const randomNum = Math.floor(Math.random() * 6) + 1;
-
-    switch (randomNum) {
-      case 1:
-        setDiceImg(diceone);
-        break;
-      case 2:
-        setDiceImg(dicetwo);
-        break;
-      case 3:
-        setDiceImg(dicethree);
-        break;
-      case 4:
-        setDiceImg(dicefour);
-        break;
-      case 5:
-        setDiceImg(dicefive);
-        break;
-      case 6:
-        setDiceImg(dicesix);
-        break;
-      default:
-        setDiceImg(diceone);
-        break;
-    }
-
-    //haptic feedback
-    ReactNativeHapticFeedback.trigger('impactHeavy', options);
-
-    
-    setIsCooldown(true);
-    setTimeout(() => {
-      setIsCooldown(false); 
-    }, 1500); 
-
-    
+  const animateScale = (index:number) => {
     Animated.sequence([
-      // Start rotating the dice
-      Animated.timing(rotation, {
-        toValue: 4 * Math.PI,  
-        duration: 1000,  
-        useNativeDriver: true,  
-      }),
-     
-      Animated.timing(scale, {
-        toValue: 1.2,  
-        duration: 150,
+      Animated.timing(scales[index], {
+        toValue: 2, 
+        duration: 300,
         useNativeDriver: true,
       }),
-      Animated.timing(scale, {
-        toValue: 1,  
-        duration: 150,
+      Animated.timing(scales[index], {
+        toValue: 1.5,  
+        duration: 300,
         useNativeDriver: true,
-      }),
+      })
     ]).start();
   };
 
-  
-  const rotate = rotation.interpolate({
-    inputRange: [0, 5 * Math.PI],  
-    outputRange: ['0deg', '1800deg'], 
-  });
+  const handleData = (index: number) => {
+    
+    if (board[index] !== null || winner !== '') return;
+
+    const newBoard = [...board];
+    
+   
+    if (resetTurn) {
+      newBoard[index] = 'O';
+      setHeading('X Turn');
+    } else {
+      newBoard[index] = 'X';
+      setHeading('O Turn');
+    }
+
+    
+    setBoard(newBoard);
+    
+    setResetTurn(!resetTurn);
+
+    animateScale(index);
+
+    // Check for winner or draw
+    if (
+      newBoard[0] === 'O' && newBoard[1] === 'O' && newBoard[2] === 'O' ||
+      newBoard[3] === 'O' && newBoard[4] === 'O' && newBoard[5] === 'O' ||
+      newBoard[6] === 'O' && newBoard[7] === 'O' && newBoard[8] === 'O' ||
+      newBoard[0] === 'O' && newBoard[3] === 'O' && newBoard[6] === 'O' ||
+      newBoard[1] === 'O' && newBoard[4] === 'O' && newBoard[7] === 'O' ||
+      newBoard[2] === 'O' && newBoard[5] === 'O' && newBoard[8] === 'O' ||
+      newBoard[0] === 'O' && newBoard[4] === 'O' && newBoard[8] === 'O' ||
+      newBoard[2] === 'O' && newBoard[4] === 'O' && newBoard[6] === 'O'
+    ) {
+      setWinner('O is winner');
+      setHeading('');
+    } else if (
+      newBoard[0] === 'X' && newBoard[1] === 'X' && newBoard[2] === 'X' ||
+      newBoard[3] === 'X' && newBoard[4] === 'X' && newBoard[5] === 'X' ||
+      newBoard[6] === 'X' && newBoard[7] === 'X' && newBoard[8] === 'X' ||
+      newBoard[0] === 'X' && newBoard[3] === 'X' && newBoard[6] === 'X' ||
+      newBoard[1] === 'X' && newBoard[4] === 'X' && newBoard[7] === 'X' ||
+      newBoard[2] === 'X' && newBoard[5] === 'X' && newBoard[8] === 'X' ||
+      newBoard[0] === 'X' && newBoard[4] === 'X' && newBoard[8] === 'X' ||
+      newBoard[2] === 'X' && newBoard[4] === 'X' && newBoard[6] === 'X'
+    ) {
+      setWinner('X is winner');
+      setHeading('');
+    } else if (!newBoard.includes(null)) {
+      setWinner('Match draw, restart the game');
+      setHeading("")
+    }
+  };
+
+  const handleReset = () => {
+    setBoard(Array(9).fill(null));
+    setWinner('');
+    setResetTurn(!resetTurn);
+    setHeading(resetTurn ? 'X Turn' : 'O Turn');
+    setScales(Array(9).fill(null).map(() => new Animated.Value(1))); 
+  };
 
   return (
     <View style={styles.container}>
-      
-      <Animated.View
-        style={{
-          transform: [{ rotate }, { scale }],
-        }}
+      {winner && <Text style={styles.result}>{winner}</Text>}
+        <View style={heading ?null: styles.headingWrapper }>
+        {heading && <Text style={[styles.headingText, { backgroundColor: resetTurn ? '#d946ef' : '#f87171' }]}>{heading}</Text>}
+      </View>
+      <View
+        style={[styles.boxes, { backgroundColor: resetTurn ? '#d946ef' : '#f87171' }]}
       >
-        <Dice imageurl={diceImg} />
-      </Animated.View>
-      <Pressable onPress={rollDiceOnTap} disabled={isCooldown}>
-        <Text style={[styles.rollDiceBtnText, isCooldown && styles.disabledButton]}>
-          Roll the dice
-        </Text>
+        {board.map((box, index) => (
+          <Pressable key={index} onPress={() => handleData(index)}>
+            <View style={styles.box}>
+              <Animated.View style={{ transform: [{ scale: scales[index] }] }}>
+                {box && <Text style={styles.text}>{box}</Text>}
+              </Animated.View>
+            </View>
+          </Pressable>
+        ))}
+      </View>
+      <Pressable onPress={handleReset} style={styles.btn}>
+        <Text style={styles.btntext}>Reset Game</Text>
       </Pressable>
+      
     </View>
   );
-}
+};
+
+export default App;
 
 const styles = StyleSheet.create({
+  headingText:{
+    fontSize:14,
+    fontWeight:"500",
+    color:"white",
+    width:200,
+    textAlign:"center",
+    paddingVertical:4,
+    borderRadius:10,
+    marginBottom:15
+  },
+  headingWrapper: {
+    height: 40,  
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fffaf2',
+    backgroundColor:"lightblue"
   },
-  diceImage: {
-    width: 150,
-    height: 150,
-    borderRadius:20
+  boxes: {
+    display: 'flex',
+    gap: 10,
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#475569',
+    height: 320,
+    width: 320,
+    marginBottom: 26,
   },
-  rollDiceBtnText: {
-    marginTop:35,
-    paddingVertical: 10,
-    paddingHorizontal: 40,
-    borderWidth: 2,
-    borderRadius: 8,
-    borderColor: '#e5e0ff',
-    fontSize: 16,
+  box: {
+    height: 100,
+    width: 100,
+    backgroundColor: 'lightblue',
+    justifyContent: 'center',
+    alignItems: 'center',
+    
+  },
+  text: {
+    fontSize: 32,
+    fontWeight: 'bold',
     color: 'blue',
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    
   },
-  disabledButton: {
-    color: '#d3d3d3', 
+  btn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 4,
+    elevation: 3,
+    backgroundColor: '#fcd34d',
   },
+  btntext: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'black',
+  },
+  result: {
+    fontSize: 24,
+    color: 'blue',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    backgroundColor:"#34d399",
+    paddingHorizontal:6,
+    paddingVertical:3,
+    borderRadius:5
+  }
 });
